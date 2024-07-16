@@ -23,7 +23,7 @@ class Lexer:
         for line_number, line in enumerate(self.f):
             line_number += 1
 
-            with BytesIO(line) as l:
+            with BytesIO(line.rstrip()) as l:
                 while True:
                     c = l.read(1)
 
@@ -105,7 +105,8 @@ class Lexer:
                                     c
                                 )
 
-                                l.seek(-1, SEEK_CUR)
+                                if next_c:
+                                    l.seek(-1, SEEK_CUR)
                         else:
                             raise LexicalError(f'Unexpected character: {c}')
 
