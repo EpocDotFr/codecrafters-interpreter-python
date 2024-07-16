@@ -37,6 +37,42 @@ class Lexer:
                     TokenType.RIGHT_BRACE,
                     c
                 ))
+            elif c == ',':
+                self.tokens.append(Token(
+                    TokenType.COMMA,
+                    c
+                ))
+            elif c == '.':
+                self.tokens.append(Token(
+                    TokenType.DOT,
+                    c
+                ))
+            elif c == '-':
+                self.tokens.append(Token(
+                    TokenType.MINUS,
+                    c
+                ))
+            elif c == '+':
+                self.tokens.append(Token(
+                    TokenType.PLUS,
+                    c
+                ))
+            elif c == ';':
+                self.tokens.append(Token(
+                    TokenType.SEMICOLON,
+                    c
+                ))
+
+            elif c == '/':
+                self.tokens.append(Token(
+                    TokenType.SLASH,
+                    c
+                ))
+            elif c == '*':
+                self.tokens.append(Token(
+                    TokenType.STAR,
+                    c
+                ))
 
         self.tokens.append(Token(
             TokenType.EOF
