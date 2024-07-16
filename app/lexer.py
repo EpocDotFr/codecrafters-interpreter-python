@@ -2,6 +2,7 @@ from app.custom_types import Token, TokenType
 from app.exceptions import LexicalError
 from io import BytesIO, SEEK_CUR
 from sys import stderr, stdout
+from string import whitespace
 from typing import List
 
 
@@ -23,7 +24,7 @@ class Lexer:
         for line_number, line in enumerate(self.f):
             line_number += 1
 
-            with BytesIO(line.rstrip()) as l:
+            with BytesIO(line.strip()) as l:
                 while True:
                     c = l.read(1)
 
@@ -31,6 +32,9 @@ class Lexer:
                         break
 
                     c = c.decode()
+
+                    if c in whitespace:
+                        continue
 
                     try:
                         if c == '(':
