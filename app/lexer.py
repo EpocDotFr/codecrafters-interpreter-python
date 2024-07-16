@@ -79,6 +79,14 @@ class Lexer:
                                 c
                             )
                         elif c == '/':
+                            next_c = l.read(1)
+
+                            if next_c:
+                                next_c = next_c.decode()
+
+                            if next_c == '/':
+                                break
+
                             token = Token(
                                 TokenType.SLASH,
                                 c
