@@ -91,6 +91,9 @@ class Lexer:
                                 TokenType.SLASH,
                                 c
                             )
+
+                            if next_c:
+                                l.seek(-1, SEEK_CUR)
                         elif c == '*':
                             token = Token(
                                 TokenType.STAR,
