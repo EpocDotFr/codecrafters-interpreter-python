@@ -17,8 +17,6 @@ def main() -> None:
             lexer = Lexer(f)
             lexer.tokenize()
 
-        print(lexer)
-
 
 if __name__ == '__main__':
     main()
