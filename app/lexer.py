@@ -27,6 +27,16 @@ class Lexer:
                     TokenType.RIGHT_PAREN,
                     c
                 ))
+            elif c == '{':
+                self.tokens.append(Token(
+                    TokenType.LEFT_BRACE,
+                    c
+                ))
+            elif c == '}':
+                self.tokens.append(Token(
+                    TokenType.RIGHT_BRACE,
+                    c
+                ))
 
         self.tokens.append(Token(
             TokenType.EOF
