@@ -1,30 +1,24 @@
-import sys
+from app.lexer import Lexer
+import argparse
 
 
-def main():
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!", file=sys.stderr)
+def main() -> None:
+    arg_parser = argparse.ArgumentParser()
 
-    if len(sys.argv) < 3:
-        print("Usage: ./your_program.sh tokenize <filename>", file=sys.stderr)
-        exit(1)
+    command_arg_parser = arg_parser.add_subparsers(dest='command', required=True)
 
-    command = sys.argv[1]
-    filename = sys.argv[2]
+    tokenize_arg_parser = command_arg_parser.add_parser('tokenize')
+    tokenize_arg_parser.add_argument('filename')
 
-    if command != "tokenize":
-        print(f"Unknown command: {command}", file=sys.stderr)
-        exit(1)
+    args = arg_parser.parse_args()
 
-    with open(filename) as file:
-        file_contents = file.read()
+    if args.command == 'tokenize':
+        with open(args.filename, 'r') as f:
+            lexer = Lexer(f)
+            lexer.tokenize()
 
-    # Uncomment this block to pass the first stage
-    # if file_contents:
-    #     raise NotImplementedError("Scanner not implemented")
-    # else:
-    #     print("EOF  null") # Placeholder, remove this line when implementing the scanner
+        print(lexer)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
