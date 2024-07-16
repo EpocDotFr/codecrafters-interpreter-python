@@ -126,6 +126,44 @@ class Lexer:
 
                                 if next_c:
                                     l.seek(-1, SEEK_CUR)
+                        elif c == '<':
+                            next_c = l.read(1)
+
+                            if next_c:
+                                next_c = next_c.decode()
+
+                            if next_c == '=':
+                                token = Token(
+                                    TokenType.LESS_EQUAL,
+                                    c + next_c
+                                )
+                            else:
+                                token = Token(
+                                    TokenType.LESS,
+                                    c
+                                )
+
+                                if next_c:
+                                    l.seek(-1, SEEK_CUR)
+                        elif c == '>':
+                            next_c = l.read(1)
+
+                            if next_c:
+                                next_c = next_c.decode()
+
+                            if next_c == '=':
+                                token = Token(
+                                    TokenType.GREATER_EQUAL,
+                                    c + next_c
+                                )
+                            else:
+                                token = Token(
+                                    TokenType.GREATER,
+                                    c
+                                )
+
+                                if next_c:
+                                    l.seek(-1, SEEK_CUR)
                         else:
                             raise LexicalError(f'Unexpected character: {c}')
 
