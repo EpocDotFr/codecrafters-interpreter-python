@@ -1,18 +1,18 @@
 from app.custom_types import Token, TokenType
 from app.exceptions import LexicalError
-from typing import List, TextIO
+from io import BytesIO, SEEK_CUR
 from sys import stderr, stdout
-from io import StringIO
+from typing import List
 
 
 class Lexer:
-    f: TextIO
+    f: BytesIO
     debug: bool
 
     tokens: List[Token]
     has_errors: bool
 
-    def __init__(self, f: TextIO, debug: bool = False):
+    def __init__(self, f: BytesIO, debug: bool = False):
         self.f = f
         self.debug = debug
 
@@ -23,12 +23,14 @@ class Lexer:
         for line_number, line in enumerate(self.f):
             line_number += 1
 
-            with StringIO(line) as l:
+            with BytesIO(line) as l:
                 while True:
                     c = l.read(1)
 
                     if not c:
                         break
+
+                    c = c.decode()
 
                     try:
                         if c == '(':
@@ -86,6 +88,24 @@ class Lexer:
                                 TokenType.STAR,
                                 c
                             )
+                        elif c == '=':
+                            next_c = l.read(1)
+
+                            if next_c:
+                                next_c = next_c.decode()
+
+                            if next_c == '=':
+                                token = Token(
+                                    TokenType.EQUAL_EQUAL,
+                                    c + next_c
+                                )
+                            else:
+                                token = Token(
+                                    TokenType.EQUAL,
+                                    c
+                                )
+
+                                l.seek(-1, SEEK_CUR)
                         else:
                             raise LexicalError(f'Unexpected character: {c}')
 

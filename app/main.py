@@ -13,7 +13,7 @@ def main() -> None:
     args = arg_parser.parse_args()
 
     if args.command == 'tokenize':
-        with open(args.filename, 'r') as f:
+        with open(args.filename, 'rb') as f:
             lexer = Lexer(f, True)
             lexer.tokenize()
 
