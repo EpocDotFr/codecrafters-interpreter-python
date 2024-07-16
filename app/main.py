@@ -14,9 +14,11 @@ def main() -> None:
 
     if args.command == 'tokenize':
         with open(args.filename, 'r') as f:
-            lexer = Lexer(f)
+            lexer = Lexer(f, True)
             lexer.tokenize()
 
+        if lexer.has_errors:
+            exit(65)
 
 if __name__ == '__main__':
     main()
