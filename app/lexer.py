@@ -1,9 +1,9 @@
 from app.custom_types import Token, TokenType
+from typing import List, Optional, Union
 from app.exceptions import LexicalError
 from io import BytesIO, SEEK_CUR
 from sys import stderr, stdout
 from string import whitespace
-from typing import List
 
 
 class Lexer:
@@ -20,183 +20,166 @@ class Lexer:
         self.tokens = []
         self.has_errors = False
 
-    def tokenize(self):
-        for line_number, line in enumerate(self.f):
-            line_number += 1
+    def read_until(self, stop: str) -> str:
+        value = ''
+        end = False
 
-            with BytesIO(line.strip()) as l:
-                while True:
-                    c = l.read(1)
+        while True:
+            c = self.f.read(1)
 
-                    if not c:
-                        break
+            if not c:
+                break
 
-                    c = c.decode()
+            c = c.decode()
 
-                    if c in whitespace:
+            if c == stop:
+                end = True
+
+                break
+
+            value += c
+
+        # if not end:
+        #     raise InvalidPattern('Encountered EOF while parsing character group')
+
+        return value
+
+    def tokenize(self) -> None:
+        line_number = 1
+
+        while True:
+            c = self.f.read(1)
+
+            if not c:
+                break
+
+            c = c.decode()
+
+            if c in whitespace:
+                if c == '\n':
+                    line_number += 1
+
+                continue
+
+            lexeme = c
+
+            try:
+                if c == '(':
+                    type_ = TokenType.LEFT_PAREN
+                elif c == ')':
+                    type_ = TokenType.RIGHT_PAREN
+                elif c == '{':
+                    type_ = TokenType.LEFT_BRACE
+                elif c == '}':
+                    type_ = TokenType.RIGHT_BRACE
+                elif c == ',':
+                    type_ = TokenType.COMMA
+                elif c == '.':
+                    type_ = TokenType.DOT
+                elif c == '-':
+                    type_ = TokenType.MINUS
+                elif c == '+':
+                    type_ = TokenType.PLUS
+                elif c == ';':
+                    type_ = TokenType.SEMICOLON
+                elif c == '/':
+                    next_c = self.f.read(1)
+
+                    if next_c:
+                        next_c = next_c.decode()
+
+                    if next_c == '/':
+                        self.read_until('\n')
+
                         continue
 
-                    try:
-                        if c == '(':
-                            token = Token(
-                                TokenType.LEFT_PAREN,
-                                c
-                            )
-                        elif c == ')':
-                            token = Token(
-                                TokenType.RIGHT_PAREN,
-                                c
-                            )
-                        elif c == '{':
-                            token = Token(
-                                TokenType.LEFT_BRACE,
-                                c
-                            )
-                        elif c == '}':
-                            token = Token(
-                                TokenType.RIGHT_BRACE,
-                                c
-                            )
-                        elif c == ',':
-                            token = Token(
-                                TokenType.COMMA,
-                                c
-                            )
-                        elif c == '.':
-                            token = Token(
-                                TokenType.DOT,
-                                c
-                            )
-                        elif c == '-':
-                            token = Token(
-                                TokenType.MINUS,
-                                c
-                            )
-                        elif c == '+':
-                            token = Token(
-                                TokenType.PLUS,
-                                c
-                            )
-                        elif c == ';':
-                            token = Token(
-                                TokenType.SEMICOLON,
-                                c
-                            )
-                        elif c == '/':
-                            next_c = l.read(1)
+                    type_ = TokenType.SLASH
 
-                            if next_c:
-                                next_c = next_c.decode()
+                    if next_c:
+                        self.f.seek(-1, SEEK_CUR)
+                elif c == '*':
+                    type_ = TokenType.STAR
+                elif c == '=':
+                    next_c = self.f.read(1)
 
-                            if next_c == '/':
-                                break
+                    if next_c:
+                        next_c = next_c.decode()
 
-                            token = Token(
-                                TokenType.SLASH,
-                                c
-                            )
+                    if next_c == '=':
+                        type_ = TokenType.EQUAL_EQUAL
 
-                            if next_c:
-                                l.seek(-1, SEEK_CUR)
-                        elif c == '*':
-                            token = Token(
-                                TokenType.STAR,
-                                c
-                            )
-                        elif c == '=':
-                            next_c = l.read(1)
+                        lexeme += next_c
+                    else:
+                        type_ = TokenType.EQUAL
 
-                            if next_c:
-                                next_c = next_c.decode()
+                        if next_c:
+                            self.f.seek(-1, SEEK_CUR)
+                elif c == '!':
+                    next_c = self.f.read(1)
 
-                            if next_c == '=':
-                                token = Token(
-                                    TokenType.EQUAL_EQUAL,
-                                    c + next_c
-                                )
-                            else:
-                                token = Token(
-                                    TokenType.EQUAL,
-                                    c
-                                )
+                    if next_c:
+                        next_c = next_c.decode()
 
-                                if next_c:
-                                    l.seek(-1, SEEK_CUR)
-                        elif c == '!':
-                            next_c = l.read(1)
+                    if next_c == '=':
+                        type_ = TokenType.BANG_EQUAL
 
-                            if next_c:
-                                next_c = next_c.decode()
+                        lexeme += next_c
+                    else:
+                        type_ = TokenType.BANG
 
-                            if next_c == '=':
-                                token = Token(
-                                    TokenType.BANG_EQUAL,
-                                    c + next_c
-                                )
-                            else:
-                                token = Token(
-                                    TokenType.BANG,
-                                    c
-                                )
+                        if next_c:
+                            self.f.seek(-1, SEEK_CUR)
+                elif c == '<':
+                    next_c = self.f.read(1)
 
-                                if next_c:
-                                    l.seek(-1, SEEK_CUR)
-                        elif c == '<':
-                            next_c = l.read(1)
+                    if next_c:
+                        next_c = next_c.decode()
 
-                            if next_c:
-                                next_c = next_c.decode()
+                    if next_c == '=':
+                        type_ = TokenType.LESS_EQUAL
 
-                            if next_c == '=':
-                                token = Token(
-                                    TokenType.LESS_EQUAL,
-                                    c + next_c
-                                )
-                            else:
-                                token = Token(
-                                    TokenType.LESS,
-                                    c
-                                )
+                        lexeme += next_c
+                    else:
+                        type_ = TokenType.LESS
 
-                                if next_c:
-                                    l.seek(-1, SEEK_CUR)
-                        elif c == '>':
-                            next_c = l.read(1)
+                        if next_c:
+                            self.f.seek(-1, SEEK_CUR)
+                elif c == '>':
+                    next_c = self.f.read(1)
 
-                            if next_c:
-                                next_c = next_c.decode()
+                    if next_c:
+                        next_c = next_c.decode()
 
-                            if next_c == '=':
-                                token = Token(
-                                    TokenType.GREATER_EQUAL,
-                                    c + next_c
-                                )
-                            else:
-                                token = Token(
-                                    TokenType.GREATER,
-                                    c
-                                )
+                    if next_c == '=':
+                        type_ = TokenType.GREATER_EQUAL
 
-                                if next_c:
-                                    l.seek(-1, SEEK_CUR)
-                        else:
-                            raise LexicalError(f'Unexpected character: {c}')
+                        lexeme += next_c
+                    else:
+                        type_ = TokenType.GREATER
 
-                        self.print(token)
+                        if next_c:
+                            self.f.seek(-1, SEEK_CUR)
+                else:
+                    raise LexicalError(f'Unexpected character: {c}')
 
-                        self.tokens.append(token)
-                    except LexicalError as e:
-                        self.has_errors = True
+                self.add_token(type_, lexeme)
+            except LexicalError as e:
+                self.has_errors = True
 
-                        self.print(f'[line {line_number}] Error: {e}', error=True)
+                self.print(f'[line {line_number}] Error: {e}', error=True)
 
-        eof_token = Token(
-            TokenType.EOF
+        self.add_token(TokenType.EOF)
+
+    def add_token(self, type_: TokenType, lexeme: str = '', literal: Optional[Union[str, int, float, bool]] = None) -> None:
+        token = Token(
+            type_,
+            lexeme,
+            literal
         )
 
-        self.print(eof_token)
+        self.print(token)
 
-        self.tokens.append(eof_token)
+        self.tokens.append(token)
 
     def print(self, message: str, error: bool = False) -> None:
         if not self.debug:
