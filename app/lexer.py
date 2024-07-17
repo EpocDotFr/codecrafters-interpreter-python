@@ -5,6 +5,8 @@ from io import BytesIO, SEEK_CUR
 from sys import stderr, stdout
 from string import whitespace
 
+whitespace_bytes = whitespace.encode()
+
 
 class Lexer:
     f: BytesIO
@@ -20,8 +22,8 @@ class Lexer:
         self.tokens = []
         self.has_errors = False
 
-    def read_until(self, stop: str) -> str:
-        value = ''
+    def read_until(self, stop: bytes) -> bytes:
+        value = b''
         end = False
 
         while True:
@@ -29,8 +31,6 @@ class Lexer:
 
             if not c:
                 break
-
-            c = c.decode()
 
             if c == stop:
                 end = True
@@ -53,10 +53,8 @@ class Lexer:
             if not c:
                 break
 
-            c = c.decode()
-
-            if c in whitespace:
-                if c == '\n':
+            if c in whitespace_bytes:
+                if c == b'\n':
                     line_number += 1
 
                 continue
@@ -65,33 +63,30 @@ class Lexer:
             literal = None
 
             try:
-                if c == '(':
+                if c == b'(':
                     type_ = TokenType.LEFT_PAREN
-                elif c == ')':
+                elif c == b')':
                     type_ = TokenType.RIGHT_PAREN
-                elif c == '{':
+                elif c == b'{':
                     type_ = TokenType.LEFT_BRACE
-                elif c == '}':
+                elif c == b'}':
                     type_ = TokenType.RIGHT_BRACE
-                elif c == ',':
+                elif c == b',':
                     type_ = TokenType.COMMA
-                elif c == '.':
+                elif c == b'.':
                     type_ = TokenType.DOT
-                elif c == '-':
+                elif c == b'-':
                     type_ = TokenType.MINUS
-                elif c == '+':
+                elif c == b'+':
                     type_ = TokenType.PLUS
-                elif c == ';':
+                elif c == b';':
                     type_ = TokenType.SEMICOLON
-                elif c == '/':
+                elif c == b'/':
                     next_c = self.f.read(1)
 
-                    if next_c:
-                        next_c = next_c.decode()
-
-                    if next_c == '/':
+                    if next_c == b'/':
                         try:
-                            self.read_until('\n')
+                            self.read_until(b'\n')
 
                             line_number += 1
 
@@ -103,15 +98,12 @@ class Lexer:
 
                     if next_c:
                         self.f.seek(-1, SEEK_CUR)
-                elif c == '*':
+                elif c == b'*':
                     type_ = TokenType.STAR
-                elif c == '=':
+                elif c == b'=':
                     next_c = self.f.read(1)
 
-                    if next_c:
-                        next_c = next_c.decode()
-
-                    if next_c == '=':
+                    if next_c == b'=':
                         type_ = TokenType.EQUAL_EQUAL
 
                         lexeme += next_c
@@ -120,13 +112,10 @@ class Lexer:
 
                         if next_c:
                             self.f.seek(-1, SEEK_CUR)
-                elif c == '!':
+                elif c == b'!':
                     next_c = self.f.read(1)
 
-                    if next_c:
-                        next_c = next_c.decode()
-
-                    if next_c == '=':
+                    if next_c == b'=':
                         type_ = TokenType.BANG_EQUAL
 
                         lexeme += next_c
@@ -135,13 +124,10 @@ class Lexer:
 
                         if next_c:
                             self.f.seek(-1, SEEK_CUR)
-                elif c == '<':
+                elif c == b'<':
                     next_c = self.f.read(1)
 
-                    if next_c:
-                        next_c = next_c.decode()
-
-                    if next_c == '=':
+                    if next_c == b'=':
                         type_ = TokenType.LESS_EQUAL
 
                         lexeme += next_c
@@ -150,13 +136,10 @@ class Lexer:
 
                         if next_c:
                             self.f.seek(-1, SEEK_CUR)
-                elif c == '>':
+                elif c == b'>':
                     next_c = self.f.read(1)
 
-                    if next_c:
-                        next_c = next_c.decode()
-
-                    if next_c == '=':
+                    if next_c == b'=':
                         type_ = TokenType.GREATER_EQUAL
 
                         lexeme += next_c
@@ -165,19 +148,21 @@ class Lexer:
 
                         if next_c:
                             self.f.seek(-1, SEEK_CUR)
-                elif c == '"':
+                elif c == b'"':
                     type_ = TokenType.STRING
 
                     try:
-                        literal = self.read_until('"')
+                        literal = self.read_until(b'"')
 
-                        lexeme += literal + '"'
+                        lexeme += literal + b'"'
+
+                        literal = literal.decode()
                     except EOFError:
                         raise LexicalError('Unterminated string.') from None
                 else:
-                    raise LexicalError(f'Unexpected character: {c}')
+                    raise LexicalError(f'Unexpected character: {c.decode()}')
 
-                self.add_token(type_, lexeme, literal)
+                self.add_token(type_, lexeme.decode(), literal)
             except LexicalError as e:
                 self.has_errors = True
 
