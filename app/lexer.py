@@ -1,22 +1,22 @@
 from app.custom_types import Token, TokenType
-from typing import List, Optional, Union
 from app.exceptions import LexicalError
 from string import whitespace, digits
-from io import BytesIO, SEEK_CUR
+from typing import List, BinaryIO
 from sys import stderr, stdout
+from io import SEEK_CUR
 
 whitespace_bytes = whitespace.encode()
 digits_bytes = digits.encode()
 
 
 class Lexer:
-    f: BytesIO
+    f: BinaryIO
     debug: bool
 
     tokens: List[Token]
     has_errors: bool
 
-    def __init__(self, f: BytesIO, debug: bool = False):
+    def __init__(self, f: BinaryIO, debug: bool = False):
         self.f = f
         self.debug = debug
 
@@ -191,14 +191,10 @@ class Lexer:
 
         self.add_token(TokenType.EOF)
 
-    def add_token(self, type_: TokenType, lexeme: str = '', literal: Optional[Union[str, int, float, bool]] = None) -> None:
-        token = Token(
-            type_,
-            lexeme,
-            literal
-        )
+    def add_token(self, *args, **kwargs) -> None:
+        token = Token(*args, **kwargs)
 
-        self.print(token)
+        self.print(str(token))
 
         self.tokens.append(token)
 

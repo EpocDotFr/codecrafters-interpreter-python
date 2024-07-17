@@ -1,5 +1,5 @@
 from typing import Optional, Union
-import dataclasses
+from dataclasses import dataclass
 import enum
 
 
@@ -53,7 +53,7 @@ class TokenType(enum.StrEnum):
     EOF = enum.auto()
 
 
-@dataclasses.dataclass
+@dataclass
 class Token:
     type_: TokenType
     lexeme: str = ''

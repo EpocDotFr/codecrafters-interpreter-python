@@ -20,5 +20,6 @@ def main() -> None:
         if lexer.has_errors:
             exit(65)
 
+
 if __name__ == '__main__':
     main()
