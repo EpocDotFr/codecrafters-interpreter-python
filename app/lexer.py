@@ -39,8 +39,8 @@ class Lexer:
 
             value += c
 
-        # if not end:
-        #     raise InvalidPattern('Encountered EOF while parsing character group')
+        if not end:
+            raise EOFError()
 
         return value
 
@@ -62,6 +62,7 @@ class Lexer:
                 continue
 
             lexeme = c
+            literal = None
 
             try:
                 if c == '(':
@@ -159,10 +160,19 @@ class Lexer:
 
                         if next_c:
                             self.f.seek(-1, SEEK_CUR)
+                elif c == '"':
+                    type_ = TokenType.STRING
+
+                    try:
+                        literal = self.read_until('"')
+
+                        lexeme += literal + '"'
+                    except EOFError:
+                        raise LexicalError('Unterminated string.') from None
                 else:
                     raise LexicalError(f'Unexpected character: {c}')
 
-                self.add_token(type_, lexeme)
+                self.add_token(type_, lexeme, literal)
             except LexicalError as e:
                 self.has_errors = True
 
