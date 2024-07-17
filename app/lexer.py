@@ -1,11 +1,12 @@
 from app.custom_types import Token, TokenType
 from typing import List, Optional, Union
 from app.exceptions import LexicalError
+from string import whitespace, digits
 from io import BytesIO, SEEK_CUR
 from sys import stderr, stdout
-from string import whitespace
 
 whitespace_bytes = whitespace.encode()
+digits_bytes = digits.encode()
 
 
 class Lexer:
@@ -159,6 +160,23 @@ class Lexer:
                         literal = literal.decode()
                     except EOFError:
                         raise LexicalError('Unterminated string.') from None
+                elif c in digits_bytes:
+                    type_ = TokenType.NUMBER
+
+                    while True:
+                        next_c = self.f.read(1)
+
+                        if not next_c:
+                            break
+
+                        if next_c not in digits_bytes and next_c != b'.':
+                            self.f.seek(-1, SEEK_CUR)
+
+                            break
+
+                        lexeme += next_c
+
+                    literal = float(lexeme)
                 else:
                     raise LexicalError(f'Unexpected character: {c.decode()}')
 
