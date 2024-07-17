@@ -90,9 +90,14 @@ class Lexer:
                         next_c = next_c.decode()
 
                     if next_c == '/':
-                        self.read_until('\n')
+                        try:
+                            self.read_until('\n')
 
-                        continue
+                            line_number += 1
+
+                            continue
+                        except EOFError:
+                            break
 
                     type_ = TokenType.SLASH
 
