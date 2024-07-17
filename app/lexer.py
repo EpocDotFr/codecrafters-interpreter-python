@@ -169,9 +169,12 @@ class Lexer:
                         if not next_c:
                             break
 
-                        if next_c not in digits_bytes and next_c != b'.':
+                        if next_c not in digits_bytes + b'.':
                             self.f.seek(-1, SEEK_CUR)
 
+                            break
+
+                        if next_c == b'.' and b'.' in lexeme:
                             break
 
                         lexeme += next_c
